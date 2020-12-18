@@ -1,3 +1,4 @@
+# coding=utf-8
 import tkinter as tk
 from tkinter import filedialog, Text
 import os
@@ -68,7 +69,6 @@ canvas.pack()
 
 frame = tk.Frame(root, bg="white")
 frame.place(relwidth=0.8, relheight=0.8, relx=0.1, rely=0.1)
-frame.grid(col=0, sticky="N")
 
 def test():
     print("yes")
