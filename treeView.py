@@ -78,7 +78,7 @@ class ParseTreeWrapper(TreeWrapper):
 def shownodes(sequence):
     sequence = map(str, sequence)           # convert nodes to strings
     entry.delete(0, END)                    # show nodes in text field
-    entry.insert(0, string.join(sequence, ' '))
+    entry.insert(0, ' '.join(sequence))
 
 def test1_binary(  ):                         # tree type is binary wrapper
     nodes = [3, 1, 9, 2, 7]                 # make a binary tree
