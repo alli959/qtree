@@ -11,6 +11,9 @@ import re
 import json
 import tree
 
+from collections import Sequence
+from itertools import chain, count
+
 
 
 class App(QWidget):
@@ -29,7 +32,7 @@ class App(QWidget):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
 
-        buttons = []
+        buttons = self.createButtons(text)
 
         self.createButtons(text)
         button1 = QPushButton('PyQt5 button', self)
@@ -52,7 +55,7 @@ class App(QWidget):
     
     def createButtons(self,text):
         test = np.array(text)
-        print(test)
+
 
 
 
