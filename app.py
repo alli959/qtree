@@ -2,19 +2,64 @@
 import tkinter as tk
 from tkinter import filedialog, Text
 import os
+import numpy as np
+import sys
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton
+from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import pyqtSlot
 import re
 import json
-import nltk
-from nltk.corpus import treebank
 import tree
 
 
 
- 
+class App(QWidget):
+
+    def __init__(self, text):
+        super().__init__()
+        self.title = 'PyQt5 button - pythonspot.com'
+        self.left = 10
+        self.top = 10
+        self.width = 700
+        self.height = 700
+
+        self.initUI(text)
+    
+    def initUI(self, text):
+        self.setWindowTitle(self.title)
+        self.setGeometry(self.left, self.top, self.width, self.height)
+
+        buttons = []
+
+        self.createButtons(text)
+        button1 = QPushButton('PyQt5 button', self)
+        button2 = QPushButton('PyQt5 button', self)
+
+        button1.setToolTip('This is an example button')
+        button1.move(90,70)
+        button2.move(30,30)
+
+        button1.clicked.connect(self.on_click)
+        button2.clicked.connect(self.on_click)
+        
+        self.show()
+        
+        
+    @pyqtSlot()
+    def on_click(self):
+        print('PyQt5 button click')
+
+    
+    def createButtons(self,text):
+        test = np.array(text)
+        print(test)
 
 
-root = tk.Tk()
-apps = []
+
+
+
+
+
 
 testData = '''(  (IP-MAT
     (NP-SBJ (NPR-N Steinunn))
@@ -36,7 +81,6 @@ testData = '''(  (IP-MAT
 
 
 
-print(testData)
 
 sentarr = []
 sentences = testData.split('\n\n')
@@ -46,7 +90,9 @@ for i in sentences:
     tree,ind = readTree(i, 0)
     sentarr.append(tree)'''
 
-print(tree.tree)
+
+
+
 
 '''
 def drawTree(tree, ind):
@@ -59,31 +105,9 @@ def drawTree(tree, ind):
 def addApp():
     filename = filedialog.askopenfilename(initialdir="/", title="Select File", filetypes=(("psd files", "*.psd"), ("all files", "*.*")))
     apps.append(filename)
-    print(filename)
-
-canvas = tk.Canvas(root, height=700, width=700, bg="#263D42")
-canvas.pack()
 
 
-
-
-frame = tk.Frame(root, bg="white")
-frame.place(relwidth=0.8, relheight=0.8, relx=0.1, rely=0.1)
-
-def test():
-    print("yes")
-testlab = tk.Label(master=frame, bg="#ffffff", text="test")
-testlab.grid(row=2)
-
-
-
-
-openFile = tk.Button(root, text="Open File", padx=10, pady=5, fg="white", bg="#263D42", command=addApp)
-openFile.pack()
-runApps = tk.Button(root, text="Run Apps", padx=10, pady=5, fg="white", bg="#263D42")
-
-runApps.pack()
-
-print(root.winfo_width)
-
-root.mainloop()
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    ex = App(tree.tree)
+    sys.exit(app.exec_())
