@@ -8,16 +8,22 @@ import numpy as np
 import tree
 
 testData = '''(  (IP-MAT
-    (NP-SBJ (NPR-N Steinunn))
-    (VBDI seldi)
-    (NP-OB2 (NPR-D Mirko))))'''
+    (NP-SBJ (PRO-D Honum))
+    (VBDI blöskraði)
+    (PP
+      (P þegar)
+      (CP-ADV
+        (C 0)
+        (IP-SUB
+          (NP-SBJ (NP (D-D þessi) (N-D niðurstaða)))
+          (RDDI varð)
+          (ADJP (ADJ-N ljós)))))))'''
 
 
 
 
 testVal = tree.Tree([testData], 0)
 
-print(testVal)
 
 class App(QWidget):
 
@@ -28,6 +34,10 @@ class App(QWidget):
         self.top = 10
         self.width = 700
         self.height = 700
+        self.bWidth = 80
+        self.bHeight = 40
+        self.margin = 20
+
         self.depth = self.findDepth(text)
         self.initUI(text)
     
@@ -36,16 +46,16 @@ class App(QWidget):
         self.setGeometry(self.left, self.top, self.width, self.height)
         
         buttons = self.createButtons(text)
+        for b in buttons:
+            button = QPushButton(b["name"], self)
+            button.setGeometry(int(b["xpos"]),int(b["ypos"]),self.bWidth,self.bHeight)
 
-        button1 = QPushButton('PyQt5 button', self)
-        button2 = QPushButton('PyQt5 button', self)
 
-        button1.setToolTip('This is an example button')
-        button1.move(90,70)
-        button2.move(30,30)
+        
 
-        button1.clicked.connect(self.on_click)
-        button2.clicked.connect(self.on_click)
+
+        #button1.clicked.connect(self.on_click)
+        #button2.clicked.connect(self.on_click)
         
         self.show()
 
@@ -54,17 +64,25 @@ class App(QWidget):
         print('PyQt5 button click')
 
     def createButtons(self,text):
-        print(text[0][1])
+        buttons = []
+        
         yPos = 10
         #below is temp, change later
         sent = text[0][1]
         depth = self.findDepth(sent)
         maxHeight = self.height // depth
-        print(maxHeight)
 
+        button = {
+                    "name" : sent[0],
+                    "xpos" : self.width/2,
+                    "ypos" : self.bHeight + 20
+                }
+        buttons.append(button)
 
-        print(maxHeight)
-        return []
+        buttons2 = self.createLayout(sent,self.width/2)
+        buttons = buttons + buttons2
+
+        return buttons
         
         
 
@@ -73,26 +91,108 @@ class App(QWidget):
         return depth(text)
 
 
-    def createLayout(self, sentence, depth=1):
-        buttons = []
-        for i in range(len(sentence)):
-            if isinstance(sentence[i], list):
-                createLayout(sentence[i], depth+1)
-            else:
-                button = {
-                    name : "",
-                    xpos : 0,
-                    ypos : 0
-                }
-                if isinstance(sentence[i+1],list):
-                    button.name = sentence[i]
-                    button.xpos = self.width / 2
-                    button.ypos = depth * (self.height // """tempVal""" 3)
-                buttons.append(button)
+    def createLayout(self, sentence, xPos, depth=2, buttons=[]):
+        
+        
+        #find how many notes are in this depth excluding the head
+        length = len(sentence)-1
+        xPositions = []
+        #create list of xPositions
+        if length%2 == 0:
+
+            left = []
+            right = []
+
+            #left list
+            for i in range(int(length/2)):
+                if not left:
+                    left.append(xPos-(self.bWidth + 20))
                 else:
-                    for j in sentence[i]:
+                    left.append(left[-1]-(self.bWidth + 20))
+
+            #right list
+            for i in range(int(length/2)):
+                if not right:
+                    right.append(xPos+(self.bWidth + 20))
+                else:
+                    right.append(right[-1]+(self.bWidth + 20))
+
+            left.reverse()
+            xPositions = left + right
+        else:
+            mid = [xPos]
+            left = []
+            right = []
+
+            #left list
+            for i in range(int((length-1)/2)):
+                if not left:
+                    left.append(xPos-(self.bWidth + 20))
+                else:
+                    left.append(left[-1]-(self.bWidth + 20))
+
+            #right list
+            for i in range(int((length-1)/2)):
+                if not right:
+                    right.append(xPos+(self.bWidth + 20))
+                else:
+                    right.append(right[-1]+(self.bWidth + 20))
+            left.reverse()
+            xPositions = left + mid + right
+
+
+
+
+            
+
+
+
+        
+        for i in range(1,len(sentence)):
+
+            if isinstance(sentence[i], list):
+                if len(sentence[i]) == 2 and isinstance(sentence[i][0], str) and isinstance(sentence[i][1], str):
                     
-        #QPushButton('PyQt5 button', self)
+                    #HEADER
+                    header = {
+                        "name" : sentence[i][0],
+                        "xpos" : xPositions[i-1],
+                        "ypos" : (self.bHeight + 20)*depth
+                    }
+                    
+                    buttons.append(header)
+
+                    #VALUE
+                    value = {
+                        "name" : sentence[i][1],
+                        "xpos" : xPositions[i-1],
+                        "ypos" : (self.bHeight + 20)*(depth+1)
+                    }
+                    buttons.append(value)
+                else:
+
+                    tempxPos = xPositions[i-1]
+                    nextL = len(sentence[i])
+
+                    if nextL%2 == 0:
+                        tempxPos = tempxPos + int((nextL/2)*(self.bWidth + 20))
+                    else:
+                        tempxPos = tempxPos + int(((nextL-1)/2*(self.bWidth + 20)))
+
+
+
+                    header = {
+                        "name" : sentence[i][0],
+                        "xpos" : tempxPos,
+                        "ypos" : (self.bHeight + 20)*depth
+                    }
+                    buttons.append(header)
+
+
+                    self.createLayout(sentence[i], tempxPos, depth+1, buttons)
+
+        return buttons
+            #else:
 
 
 

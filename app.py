@@ -11,7 +11,7 @@ import re
 import json
 import tree
 
-from collections import Sequence
+from collections.abc import Sequence
 from itertools import chain, count
 
 
@@ -35,12 +35,12 @@ class App(QWidget):
         buttons = self.createButtons(text)
 
         self.createButtons(text)
-        button1 = QPushButton('PyQt5 button', self)
+        button1 = QPushButton('IP-MAT', self)
         button2 = QPushButton('PyQt5 button', self)
 
         button1.setToolTip('This is an example button')
-        button1.move(90,70)
-        button2.move(30,30)
+        button1.setGeometry(90,70,80,40)
+        button2.setGeometry(30,30,40,40)
 
         button1.clicked.connect(self.on_click)
         button2.clicked.connect(self.on_click)
@@ -54,7 +54,7 @@ class App(QWidget):
 
     
     def createButtons(self,text):
-        test = np.array(text)
+        return []
 
 
 
@@ -88,6 +88,10 @@ testData = '''(  (IP-MAT
 sentarr = []
 sentences = testData.split('\n\n')
 tree = tree.Tree(sentences,0)
+
+print(tree.tree)
+
+
 '''
 for i in sentences:
     tree,ind = readTree(i, 0)
