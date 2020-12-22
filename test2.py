@@ -6,7 +6,7 @@ from collections.abc import Sequence
 from itertools import chain, count
 import numpy as np
 import tree
-
+from random import random
 testData = '''(  (IP-MAT
     (NP-SBJ (PRO-D Honum))
     (VBDI blöskraði)
@@ -23,6 +23,8 @@ testData = '''(  (IP-MAT
 
 
 testVal = tree.Tree([testData], 0)
+
+print(testVal.tree)
 
 
 class App(QWidget):
@@ -71,7 +73,6 @@ class App(QWidget):
         sent = text[0][1]
         depth = self.findDepth(sent)
         maxHeight = self.height // depth
-
         button = {
                     "name" : sent[0],
                     "xpos" : self.width/2,
@@ -91,14 +92,64 @@ class App(QWidget):
         return depth(text)
 
 
-    def createLayout(self, sentence, xPos, depth=2, buttons=[]):
+    def createLayout(self, sentence, xPos, depth=2, buttons=[], prevx = -1):
         
+        xPositions = self.defaultxPos(sentence, xPos)
+        if prevx == -1:
+            prevx = xPositions[-1]
+        prevRightMost = xPositions[-1]
+        print(prevRightMost)
         
-        #find how many notes are in this depth excluding the head
+        for i in range(1,len(sentence)):
+            if isinstance(sentence[i], list):
+                if len(sentence[i]) == 2 and isinstance(sentence[i][0], str) and isinstance(sentence[i][1], str):
+                    #HEADER
+                    header = {
+                        "id": i,
+                        "name" : sentence[i][0],
+                        "xpos" : xPositions[i-1],
+                        "ypos" : (self.bHeight + 20)*depth
+                    }
+
+                    buttons.append(header)
+
+                    #VALUE
+                    value = {
+                        "id": i,
+                        "name" : sentence[i][1],
+                        "xpos" : xPositions[i-1],
+                        "ypos" : (self.bHeight + 20)*(depth+1)
+                    }
+                    buttons.append(value)
+                else:
+                    tempxPos = xPositions[i-1]
+                    xPos = self.findXPos(buttons, sentence[i], tempxPos)
+                    
+                    header = {
+                        "id": i,
+                        "name" : sentence[i][0],
+                        "xpos" : xPos,
+                        "ypos" : (self.bHeight + 20)*depth
+                    }
+                    buttons.append(header)
+                    
+
+                    self.createLayout(sentence[i], xPos, depth+1, buttons)
+
+        return buttons
+            #else:
+    def defaultxPos(self, sentence, xPos):
+            #find how many notes are in this depth excluding the head
+
         length = len(sentence)-1
         xPositions = []
-        #create list of xPositions
+
+        rightxpos = 0
+
+
         if length%2 == 0:
+
+
 
             left = []
             right = []
@@ -120,6 +171,13 @@ class App(QWidget):
             left.reverse()
             xPositions = left + right
         else:
+
+
+            cnotelength = int((len(sentence[1]))-1)/2
+
+            tempLeftXPos = xPos - (cnotelength*(self.bWidth+20))
+
+
             mid = [xPos]
             left = []
             right = []
@@ -139,6 +197,65 @@ class App(QWidget):
                     right.append(right[-1]+(self.bWidth + 20))
             left.reverse()
             xPositions = left + mid + right
+        
+        return xPositions
+
+    def findXPos(self, buttons, sentence, xPos):
+        if buttons:
+
+            rightMost = self.rightMostX(buttons)
+            leftMost = self.leftMostX(sentence, xPos, xPos)
+            #print("sentence",sentence)
+            #print("rightMost", rightMost)
+            #print("leftMost", leftMost)
+            #print("xPosBefore",xPos)
+
+            #how much we should move each note
+            mover = 0
+            if rightMost > leftMost:
+                while rightMost > leftMost:
+                    leftMost += (self.bWidth + 20)
+                    xPos += (self.bWidth + 20)
+            
+            
+        return xPos
+
+
+    def rightMostX(self, buttons):
+        maxX = 0
+        for i in buttons:
+            if i["xpos"] > maxX:
+                maxX = i["xpos"]
+                print(i["id"])
+        return maxX
+    
+
+
+    #input sentence[i]
+    def leftMostX(self,sentence, xpos, leftmost):
+        leftX = - (self.bWidth + 20)
+        rightX = (self.bWidth + 20)
+        length = len(sentence)
+
+        #check current row
+        if length%2 == 0:
+            xpos = xpos + int((length/2)*leftX)
+            if xpos < leftmost:
+                leftmost = xpos
+        else:
+            xpos = xpos + int((length-1/2)*leftX)
+            if xpos < leftmost:
+                leftmost = xpos
+        
+            
+        for i in range(1,length):
+            xpos = xpos + rightX
+            if isinstance(sentence[i], str):
+                return leftmost
+            else:
+                self.leftMostX(sentence[i], xpos, leftmost)
+
+        return leftmost
 
 
 
@@ -147,52 +264,6 @@ class App(QWidget):
 
 
 
-        
-        for i in range(1,len(sentence)):
-
-            if isinstance(sentence[i], list):
-                if len(sentence[i]) == 2 and isinstance(sentence[i][0], str) and isinstance(sentence[i][1], str):
-                    
-                    #HEADER
-                    header = {
-                        "name" : sentence[i][0],
-                        "xpos" : xPositions[i-1],
-                        "ypos" : (self.bHeight + 20)*depth
-                    }
-                    
-                    buttons.append(header)
-
-                    #VALUE
-                    value = {
-                        "name" : sentence[i][1],
-                        "xpos" : xPositions[i-1],
-                        "ypos" : (self.bHeight + 20)*(depth+1)
-                    }
-                    buttons.append(value)
-                else:
-
-                    tempxPos = xPositions[i-1]
-                    nextL = len(sentence[i])
-
-                    if nextL%2 == 0:
-                        tempxPos = tempxPos + int((nextL/2)*(self.bWidth + 20))
-                    else:
-                        tempxPos = tempxPos + int(((nextL-1)/2*(self.bWidth + 20)))
-
-
-
-                    header = {
-                        "name" : sentence[i][0],
-                        "xpos" : tempxPos,
-                        "ypos" : (self.bHeight + 20)*depth
-                    }
-                    buttons.append(header)
-
-
-                    self.createLayout(sentence[i], tempxPos, depth+1, buttons)
-
-        return buttons
-            #else:
 
 
 
