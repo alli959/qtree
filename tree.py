@@ -21,7 +21,6 @@ class Tree:
 
 
 
-
     def createTree(self, text, ind, sentencenr, verbose=False):
         """The basic idea here is to represent the file contents as a long string
         and iterate through it character-by-character (the 'ind' variable
@@ -89,3 +88,38 @@ class Tree:
                 print("Read in word:", word)
 
             return word, ind
+        
+    #add leaf to the tree
+
+    def addLeaf(self, positions, label, value):
+        sentence = self.tree
+        print(sentence)
+        string = "sentence"
+        for i in positions:
+            string = string + '[' + str(i) + ']'
+        string = string + ".append([{},".format(label)
+        string = string + "{}])".format(value)
+        exec(string)
+        self.updateTree(sentence)
+
+    def removeLeaf(self, positions):
+        sentence = self.tree
+        string = "del sentence"
+        for i in positions:
+            string = string + '[' + str(i) + ']'
+        self.updateTree(sentence)
+    
+        
+    
+    def updateTree(self, newTree):
+        self.tree = newTree
+
+    
+
+    
+
+
+            
+
+
+        

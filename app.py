@@ -203,6 +203,8 @@ class App(QWidget):
                     tempxPos = xPositions[i-1]
                     if isinstance(sentence[i][1], list):
                         if len(sentence[i]) > 2:
+                            
+
                             tempxPos = xPositions[i-1] + self.bWidth + 20
 
                     self.increseID()
