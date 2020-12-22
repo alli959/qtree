@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QButtonGroup
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
 from collections.abc import Sequence
@@ -24,12 +24,15 @@ testData = '''(  (IP-MAT
 
 testVal = tree.Tree([testData], 0)
 
+
+
 class App(QWidget):
 
     def __init__(self, text):
         super().__init__()
-        self.buttons = [],
-        self.title = 'PyQt5 button - pythonspot.com',
+        self.currentID = 1
+        self.buttongroup = QButtonGroup()
+        self.title = 'PyQt5 button - pythonspot.com'
         self.left = 10
         self.top = 10
         self.width = 700
@@ -42,22 +45,20 @@ class App(QWidget):
         self.depth = self.findDepth(text)
         self.initUI(text)
     
+    def increseID(self):
+        self.currentID += 1
+    
     def initUI(self, text):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
-        self.QButtonGroup()
-        
-        if not self.buttons:
+        self.buttongroup.buttonClicked[int].connect(self.on_button_clicked)
+        if not self.buttongroup.buttons():
 
             buttons = self.createButtons(text)
-            print(buttons)
             for b in buttons:
                 button = QPushButton(b["name"], self)
                 button.setGeometry(int(b["xpos"]),int(b["ypos"]),self.bWidth,self.bHeight)
-                button.setCheckable(True)
-                self.buttons.append(button)
-        for i in self.buttons:
-            print(i.isChecked())
+                self.buttongroup.addButton(button,b["id"])
         
 
 
@@ -66,7 +67,7 @@ class App(QWidget):
         
         self.show()
 
-    def on_click(self,ID):
+    def on_button_clicked(self,ID):
         print(ID)
 
     def createButtons(self,text):
@@ -78,8 +79,10 @@ class App(QWidget):
         depth = self.findDepth(sent)
         maxHeight = self.height // depth
 
+        
+
         button = {
-                    "id": 0,
+                    "id": self.currentID,
                     "name" : sent[0],
                     "xpos" : self.width/2,
                     "ypos" : self.bHeight + 20
@@ -97,7 +100,7 @@ class App(QWidget):
         return depth(text)
 
 
-    def createLayout(self, sentence, xPos, depth=2, buttons=[], ID = 0):
+    def createLayout(self, sentence, xPos, depth=2, buttons=[]):
         
         #find the rightmost x in respect to the current y value
 
@@ -175,9 +178,9 @@ class App(QWidget):
             if isinstance(sentence[i], list):
                 if len(sentence[i]) == 2 and isinstance(sentence[i][0], str) and isinstance(sentence[i][1], str):
                     #HEADER
-                    ID = ID +1
+                    self.increseID()
                     header = {
-                        "id": ID,
+                        "id": self.currentID,
                         "name" : sentence[i][0],
                         "xpos" : xPositions[i-1],
                         "ypos" : (self.bHeight + 20)*depth
@@ -186,10 +189,11 @@ class App(QWidget):
                     buttons.append(header)
 
                     #VALUE
-                    ID = ID +1
+                    self.increseID()
+
 
                     value = {
-                        "id": ID,
+                        "id": self.currentID,
                         "name" : sentence[i][1],
                         "xpos" : xPositions[i-1],
                         "ypos" : (self.bHeight + 20)*(depth+1)
@@ -198,11 +202,12 @@ class App(QWidget):
                 else:
                     tempxPos = xPositions[i-1]
                     if isinstance(sentence[i][1], list):
-                        tempxPos = xPositions[i-1] + self.bWidth + 20
+                        if len(sentence[i]) > 2:
+                            tempxPos = xPositions[i-1] + self.bWidth + 20
 
-                    ID = ID +1
+                    self.increseID()
                     header = {
-                        "id" : ID,
+                        "id" : self.currentID,
                         "name" : sentence[i][0],
                         "xpos" : tempxPos,
                         "ypos" : (self.bHeight + 20)*depth
@@ -211,7 +216,7 @@ class App(QWidget):
                     buttons.append(header)
 
 
-                    self.createLayout(sentence[i], tempxPos, depth+1, buttons, ID)
+                    self.createLayout(sentence[i], tempxPos, depth+1, buttons)
 
         return buttons
             #else:
