@@ -17,7 +17,8 @@ class MainWindow(QMainWindow):
         self.vbox = QVBoxLayout()               # The Vertical Box that contains the Horizontal Boxes of  labels and buttons
 
         for i in range(1,1000):
-            object = QLabel("TextLabel")
+            object = QPushButton("sentence nr. " + str(i))
+            object.setGeometry(0,i*40,20,30)
             self.vbox.addWidget(object)
 
         self.widget.setLayout(self.vbox)
@@ -30,7 +31,7 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(self.scroll)
 
-        self.setGeometry(600, 100, 1000, 900)
+        self.setGeometry(0, 100, 1000, 900)
         self.setWindowTitle('Scroll Area Demonstration')
         self.show()
 

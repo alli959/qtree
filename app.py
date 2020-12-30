@@ -1,11 +1,15 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QButtonGroup
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtGui import QIcon, QPainter, QBrush, QPen
+from PyQt5.QtCore import pyqtSlot, Qt
 from collections.abc import Sequence
 from itertools import chain, count
 import numpy as np
 import tree
+
+
+
+
 
 testData = '''(  (IP-MAT
     (NP-SBJ (PRO-D Honum))
@@ -30,9 +34,13 @@ class App(QWidget):
 
     def __init__(self, text):
         super().__init__()
+        self.paintPos = []
         self.currentID = 1
+        self.parentX = 0
+        self.parentY = 0
+        self.currentPosition = [0]
         self.buttongroup = QButtonGroup()
-        self.title = 'PyQt5 button - pythonspot.com'
+        self.title = 'Tree'
         self.left = 10
         self.top = 10
         self.width = 700
@@ -47,7 +55,28 @@ class App(QWidget):
     
     def increseID(self):
         self.currentID += 1
-    
+
+
+    #draws a arrow from parent to child
+    def paintEvent(self, event):
+        for i in self.paintPos:
+            qp = QPainter()
+            pxPos = int(i["pxPos"])
+            pyPos = int(i["pyPos"])
+            cxPos = int(i["cxPos"])
+            cyPos = int(i["cyPos"])
+
+
+            qp.begin(self)
+
+            qp.setPen(Qt.red)
+
+            qp.setBrush(Qt.white)
+
+            #painter.drawLine(400, 100, 100, 100)
+            qp.drawLine(pxPos, pyPos, cxPos, cyPos)
+        qp.end()
+
     def initUI(self, text):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
@@ -64,7 +93,7 @@ class App(QWidget):
 
         #button1.clicked.connect(self.on_click)
         #button2.clicked.connect(self.on_click)
-        
+        self.paintEvent("test")
         self.show()
 
     def on_button_clicked(self,ID):
@@ -79,18 +108,21 @@ class App(QWidget):
         depth = self.findDepth(sent)
         maxHeight = self.height // depth
 
-        
+        self.parentX = self.width/2 
+        self.parentY = self.bHeight + 40
 
         button = {
                     "id": self.currentID,
                     "name" : sent[0],
                     "xpos" : self.width/2,
-                    "ypos" : self.bHeight + 20
+                    "ypos" : self.bHeight + 40,
+                    "position": self.currentPosition
                 }
         buttons.append(button)
 
         buttons2 = self.createLayout(sent,self.width/2)
         buttons = buttons + buttons2
+        
         return buttons
         
         
@@ -99,31 +131,16 @@ class App(QWidget):
         depth = lambda L: isinstance(L, list) and max(map(depth, L))+1
         return depth(text)
 
-
-    def createLayout(self, sentence, xPos, depth=2, buttons=[]):
-        
-        #find the rightmost x in respect to the current y value
-
-        
-
-
-
-
-        #find how many notes are in this depth excluding the head
+    def DefaultXPos(self, sentence, xPos):
+                #find how many notes are in this depth excluding the head
         length = len(sentence)-1
         xPositions = []
         #create list of xPositions
         
-
-
         if length%2 == 0:
 
             #find new xpos in respect to the children of previous note
             
-                
-
-
-
             left = []
             right = []
 
@@ -144,10 +161,8 @@ class App(QWidget):
             left.reverse()
             xPositions = left + right
         else:
-
-
-
-            mid = [xPos]
+            mid = []
+            mid.append(int(xPos))
             left = []
             right = []
 
@@ -166,59 +181,162 @@ class App(QWidget):
                     right.append(right[-1]+(self.bWidth + 20))
             left.reverse()
             xPositions = left + mid + right
+        return xPositions
 
 
-
-
-            
-
-
+    def createLayout(self, sentence, xPos, depth=2, buttons=[]):
+        
+        xPositions = self.DefaultXPos(sentence, xPos)
         
         for i in range(1,len(sentence)):
+            tempPos = self.currentPosition
+            tempPos[-1] = i
             if isinstance(sentence[i], list):
-                if len(sentence[i]) == 2 and isinstance(sentence[i][0], str) and isinstance(sentence[i][1], str):
-                    #HEADER
-                    self.increseID()
-                    header = {
-                        "id": self.currentID,
-                        "name" : sentence[i][0],
-                        "xpos" : xPositions[i-1],
-                        "ypos" : (self.bHeight + 20)*depth
-                    }
-
-                    buttons.append(header)
-
-                    #VALUE
-                    self.increseID()
+                if len(sentence[i]) == 2:
+                    if isinstance(sentence[i][0], str) and isinstance(sentence[i][1], str):
+                        #HEADER
+                        self.increseID()
+                        tempPos.append(0)
 
 
-                    value = {
-                        "id": self.currentID,
-                        "name" : sentence[i][1],
-                        "xpos" : xPositions[i-1],
-                        "ypos" : (self.bHeight + 20)*(depth+1)
-                    }
-                    buttons.append(value)
+                        #paint the arrow from parent to child node
+                        paint = {
+                            "pxPos" : self.parentX,
+                            "pyPos" : self.parentY,
+                            "cxPos" : xPositions[i-1],
+                            "cyPos" : (self.bHeight + 40)*depth
+                        }
+                        self.paintPos.append(paint)
+
+
+
+                        header = {
+                            "id": self.currentID,
+                            "name" : sentence[i][0],
+                            "xpos" : xPositions[i-1],
+                            "ypos" : (self.bHeight + 40)*depth,
+                            "position": tempPos
+                        }
+
+                        buttons.append(header)
+                        #VALUE
+                        self.increseID()
+
+                        tempPos.pop()
+                        tempPos.append(1)
+
+
+                        #paint the arrow from parent to child node
+                        paint2 = {
+                            "pxPos" : self.parentX,
+                            "pyPos" : (self.bHeight + 40)*depth,
+                            "cxPos" : xPositions[i-1],
+                            "cyPos" : (self.bHeight + 40)*(depth+1)
+                        }
+
+                        self.paintPos.append(paint2)
+
+                        value = {
+                            "id": self.currentID,
+                            "name" : sentence[i][1],
+                            "xpos" : xPositions[i-1],
+                            "ypos" : (self.bHeight + 40)*(depth+1),
+                            "position": tempPos
+                        }
+                        tempPos.pop()
+                        buttons.append(value)
+
+
+                    else:
+
+                        self.increseID()
+                        tempPos.append(0)
+
+
+                        #paint the arrow from parent to child node
+                        paint = {
+                            "pxPos" : self.parentX,
+                            "pyPos" : self.parentY,
+                            "cxPos" : xPositions[i-1],
+                            "cyPos" : (self.bHeight + 40)*depth
+                        }
+                        self.paintPos.append(paint)
+
+
+
+                        header = {
+                            "id": self.currentID,
+                            "name" : sentence[i][0],
+                            "xpos" : xPositions[i-1],
+                            "ypos" : (self.bHeight + 40)*depth,
+                            "position": tempPos
+                        }
+
+                        buttons.append(header)
+                        #VALUE
+                        self.increseID()
+
+                        tempPos.pop()
+                        tempPos.append(1)
+
+
+                        #paint the arrow from parent to child node
+                        paint2 = {
+                            "pxPos" : self.parentX,
+                            "pyPos" : (self.bHeight + 40)*depth,
+                            "cxPos" : xPositions[i-1],
+                            "cyPos" : (self.bHeight + 40)*(depth+1)
+                        }
+
+                        self.paintPos.append(paint2)
+
+                        value = {
+                            "id": self.currentID,
+                            "name" : sentence[i][1][0],
+                            "xpos" : xPositions[i-1],
+                            "ypos" : (self.bHeight + 40)*(depth+1),
+                            "position": tempPos
+                        }
+                        tempPos.pop()
+                        buttons.append(value)
+                        print("sentence[i][1][1]",sentence[i][1][1])
+                        self.createLayout(sentence[i][1], xPositions[i-1], depth+2, buttons)
                 else:
                     tempxPos = xPositions[i-1]
                     if isinstance(sentence[i][1], list):
-                        if len(sentence[i]) > 2:
-                            
+                        if len(sentence[i]) > 2:                            
 
                             tempxPos = xPositions[i-1] + self.bWidth + 20
+                        else:
+                            print("not > 2", sentence[i])
 
                     self.increseID()
+                    tempPos.append(0)
                     header = {
                         "id" : self.currentID,
                         "name" : sentence[i][0],
                         "xpos" : tempxPos,
-                        "ypos" : (self.bHeight + 20)*depth
+                        "ypos" : (self.bHeight + 40)*depth,
+                        "position": tempPos
                     }
-
+                    print(header)
                     buttons.append(header)
 
 
+            
+            
                     self.createLayout(sentence[i], tempxPos, depth+1, buttons)
+
+            else:
+                tempxPos = xPositions[i-1]
+                value = {
+                        "id" : self.currentID,
+                        "name" : sentence[i],
+                        "xpos" : tempxPos,
+                        "ypos" : (self.bHeight + 40)*depth,
+                        "position": tempPos
+                    }
+                buttons.append(value)
 
         return buttons
             #else:
