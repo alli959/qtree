@@ -337,6 +337,7 @@ class App(QWidget):
                             buttons.append(value)
                         else:
                             
+                            
                             self.increseID()
                             header2 = {
                                 "id": self.currentID,
@@ -347,6 +348,7 @@ class App(QWidget):
                             }
                             
                             tempPos = currentPos[:] + [1] + [0]
+                            buttons.append(header2)
                             self.createLayout(sentence[i][1], xPositions[i-1], depth+2, buttons, tempPos[:])
                 else:
                     
