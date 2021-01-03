@@ -39,8 +39,6 @@ class App(QWidget):
         self.rightmostX = 0
         self.paintPos = []
         self.currentID = 1
-        self.parentX = 0
-        self.parentY = 0
         self.currentPosition = [0]
         self.buttongroup = QButtonGroup()
         self.title = 'Tree'
@@ -75,8 +73,6 @@ class App(QWidget):
             qp.setPen(Qt.red)
 
             qp.setBrush(Qt.white)
-
-            #painter.drawLine(400, 100, 100, 100)
             qp.drawLine(pxPos, pyPos, cxPos, cyPos)
         qp.end()
 
@@ -97,6 +93,7 @@ class App(QWidget):
         #button1.clicked.connect(self.on_click)
         #button2.clicked.connect(self.on_click)
         self.paintEvent("test")
+        #TEMP CHANGE LATER
         self.show()
 
     def on_button_clicked(self,ID):
@@ -111,8 +108,8 @@ class App(QWidget):
         depth = self.findDepth(sent)
         maxHeight = self.height // depth
 
-        self.parentX = self.width/2 
-        self.parentY = self.bHeight + 40
+        parentX = self.width/2
+        parentY = self.bHeight + 40
 
         button = {
                     "id": self.currentID,
@@ -125,7 +122,7 @@ class App(QWidget):
         self.positions.append(self.currentPosition[:])
 
 
-        buttons2 = self.createLayout(sent,self.width/2)
+        buttons2 = self.createLayout(sent,self.width/2, parentX + (self.bWidth/2), parentY + (self.bHeight/2))
         buttons = buttons + buttons2
 
         for i in buttons:
@@ -202,7 +199,7 @@ class App(QWidget):
         return xPositions
 
 
-    def createLayout(self, sentence, xPos, depth=2, buttons=[], currentPos = [0]):
+    def createLayout(self, sentence, xPos, parentX, parentY, depth=2, buttons=[], currentPos = [0]):
 
         
         xPositions = self.DefaultXPos(sentence, xPos, buttons)
@@ -230,10 +227,10 @@ class App(QWidget):
 
 
                         paint = {
-                            "pxPos" : self.parentX,
-                            "pyPos" : self.parentY,
-                            "cxPos" : xPositions[i-1],
-                            "cyPos" : (self.bHeight + 40)*depth
+                            "pxPos" : parentX,
+                            "pyPos" : parentY,
+                            "cxPos" : xPositions[i-1] + (self.bWidth/2),
+                            "cyPos" : (self.bHeight + 40)*depth + (self.bHeight/2)
                         }
                         self.paintPos.append(paint)
                         
@@ -257,10 +254,10 @@ class App(QWidget):
 
                         #paint the arrow from parent to child node
                         paint2 = {
-                            "pxPos" : self.parentX,
-                            "pyPos" : (self.bHeight + 40)*depth,
-                            "cxPos" : xPositions[i-1],
-                            "cyPos" : (self.bHeight + 40)*(depth+1)
+                            "pxPos" : xPositions[i-1] + (self.bWidth/2),
+                            "pyPos" : (self.bHeight + 40)*depth + (self.bHeight/2),
+                            "cxPos" : xPositions[i-1] + (self.bWidth/2),
+                            "cyPos" : (self.bHeight + 40)*(depth+1) + (self.bHeight/2)
                         }
 
                         self.paintPos.append(paint2)
@@ -282,10 +279,10 @@ class App(QWidget):
 
                         #paint the arrow from parent to child node
                         paint = {
-                            "pxPos" : self.parentX,
-                            "pyPos" : self.parentY,
-                            "cxPos" : xPositions[i-1],
-                            "cyPos" : (self.bHeight + 40)*depth
+                            "pxPos" : parentX,
+                            "pyPos" : parentY,
+                            "cxPos" : xPositions[i-1] + (self.bWidth/2),
+                            "cyPos" : (self.bHeight + 40)*depth + (self.bHeight/2)
                         }
                         self.paintPos.append(paint)
 
@@ -309,10 +306,10 @@ class App(QWidget):
                             
                             #paint the arrow from parent to child node
                             paint2 = {
-                                "pxPos" : self.parentX,
-                                "pyPos" : (self.bHeight + 40)*depth,
-                                "cxPos" : xPositions[i-1],
-                                "cyPos" : (self.bHeight + 40)*(depth+1)
+                                "pxPos" : xPositions[i-1] + (self.bWidth/2),
+                                "pyPos" : (self.bHeight + 40)*depth + (self.bHeight/2),
+                                "cxPos" : xPositions[i-1] + (self.bWidth/2),
+                                "cyPos" : (self.bHeight + 40)*(depth+1) + (self.bHeight/2)
                             }
 
                             self.paintPos.append(paint2)
@@ -327,6 +324,16 @@ class App(QWidget):
                             }
                             buttons.append(header2)
                             self.increseID()
+                            
+                            paint3 = {
+                                "pxPos" : xPositions[i-1] + (self.bWidth/2),
+                                "pyPos" : (self.bHeight + 40)*(depth+1) + (self.bHeight/2),
+                                "cxPos" : xPositions[i-1] + (self.bWidth/2),
+                                "cyPos" : (self.bHeight + 40)*(depth+2) + (self.bHeight/2)
+                            }
+
+                            self.paintPos.append(paint3)
+
                             value = {
                                 "id": self.currentID,
                                 "name" : sentence[i][1][1],
@@ -337,6 +344,14 @@ class App(QWidget):
                             buttons.append(value)
                         else:
                             
+                            paint2 = {
+                                "pxPos" : xPositions[i-1] + (self.bWidth/2),
+                                "pyPos" : (self.bHeight + 40)*depth + (self.bHeight/2),
+                                "cxPos" : xPositions[i-1] + + (self.bWidth/2),
+                                "cyPos" : (self.bHeight + 40)*(depth+1) + (self.bHeight/2)
+                            }
+                            
+                            self.paintPos.append(paint2)
                             self.increseID()
                             header2 = {
                                 "id": self.currentID,
@@ -346,8 +361,14 @@ class App(QWidget):
                                 "position": currentPos[:] + [1] + [0]
                             }
                             
+
                             tempPos = currentPos[:] + [1] + [0]
-                            self.createLayout(sentence[i][1], xPositions[i-1], depth+2, buttons, tempPos[:])
+                            buttons.append(header2)
+
+                            #define new parent X and parentY
+                            npX = xPositions[i-1] + (self.bWidth/2)
+                            npY = (self.bHeight + 40)*(depth+1) + (self.bHeight/2)
+                            self.createLayout(sentence[i][1], xPositions[i-1], npX, npY, depth+2, buttons, tempPos[:])
                 else:
                     
                     tempxPos = xPositions[i-1]
@@ -360,6 +381,14 @@ class App(QWidget):
 
                     self.increseID()
                     self.appendPosition(currentPos[:])
+                    
+                    paint2 = {
+                        "pxPos" : parentX,
+                        "pyPos" : parentY,
+                        "cxPos" : tempxPos + (self.bWidth/2),
+                        "cyPos" : (self.bHeight + 40)*depth + (self.bHeight/2)
+                    }
+                    self.paintPos.append(paint2)
                     currentPos.append(0)
                     header = {
                         "id" : self.currentID,
@@ -371,9 +400,11 @@ class App(QWidget):
                     buttons.append(header)
 
 
+                    #define new parent X and parentY
+                    npX = tempxPos + (self.bWidth/2)
+                    npY = (self.bHeight + 40)*depth + (self.bHeight/2)
             
-            
-                    self.createLayout(sentence[i], tempxPos, depth+1, buttons, currentPos[:])
+                    self.createLayout(sentence[i], tempxPos, npX, npY, depth+1, buttons, currentPos[:])
 
             else:
                 tempxPos = xPositions[i-1]
